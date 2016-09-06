@@ -15,7 +15,7 @@ main = do
         contents <- readFile "4.txt"
         let linesOfFile = lines contents
         print $ getKey linesOfFile
-        print $ (xorStr (fst $ decode $ B.pack $ map I.c2w ("7b5a4215415d544115415d5015455447414c155c46155f4058455c5b523f")) ('5'))
+        print $ (xorStr (fst $ decode $ B.pack $ map I.c2w (fst $ snd $ getKey linesOfFile)) (snd $ snd $ getKey linesOfFile))
 
 getTuples :: [String] -> [(String, Char)]
 getTuples list = concat $ map (\x -> zip (replicate 100 (x))  [(chr 0) ..(chr 255)]) list
