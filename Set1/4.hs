@@ -17,6 +17,7 @@ main = do
         print $ getKey linesOfFile
         print $ (xorStr (fst $ decode $ B.pack $ map I.c2w (fst $ snd $ getKey linesOfFile)) (snd $ snd $ getKey linesOfFile))
 
+--List of all combinations of strings and keys
 getTuples :: [String] -> [(String, Char)]
 getTuples list = concat $ map (\x -> zip (replicate 100 (x))  [(chr 0) ..(chr 255)]) list
 
@@ -35,11 +36,11 @@ scoreMap x = Map.fromSet (\x -> getScore x) (S.fromList $ getTuples x)
 xorStr :: I.ByteString -> Char -> String
 xorStr buffer k = map I.w2c $ B.zipWith xor buffer $ B.pack $ replicate 100 (I.c2w k)
 
---Gets the score given a xor'd string based on number of letters 
+--Gets the score given a (buffer, char) tuple
 getScore :: (String, Char) -> Double
 getScore xs = sum $ map (\x-> getScoreHelper x) (xorStr (fst $ decode $ B.pack $ map I.c2w (fst $ xs)) (snd xs))
 
---Looks up the value of the character in the frequency map. If not a letter, not in table, value is 0.
+--Looks up the value of the character in the frequency map. 
 getScoreHelper:: Char -> Double
 getScoreHelper x = case Map.lookup (toLower x) letters of 
     Just frequency  -> frequency
