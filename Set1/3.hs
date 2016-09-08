@@ -9,15 +9,13 @@ import qualified Data.ByteString.Char8 as C
 import qualified Data.List as L
 import Data.Tuple
 
---letters = Map.fromList ([('a', 0.082), ('b', 0.015), ('c', 0.028), ('d', 0.043), ('e', 0.127), ('f', 0.022), ('g', 0.020), 
---                             ('h', 0.061), ('i', 0.070), ('j', 0.002), ('k', 0.008), ('l', 0.040), ('m', 0.024), ('n', 0.067), ('o', 0.075), 
---                             ('p', 0.019), ('q', 0.001), ('r', 0.060), ('s', 0.063),('t', 0.091), ('u', 0.028), ('v', 0.010),('w', 0.023), 
---                             ('x', 0.001), ('y', 0.020),('z', 0.001), (' ', 0.200)])
-
 buffer1 = fst $ decode "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+buffer2 = fst $ decode "HUIfTQsPAh9PE048GmllH0kcDk4TA"
 
 main :: IO()
-main = print $ getKey
+main = do
+     print $ xorStr 'T'
+     print $ getKey
 
 --Sets value of all letters to 1 
 letters :: Map.Map Char Double
@@ -25,7 +23,7 @@ letters = Map.fromList $ zip ['a'..'z'] (repeat 1)
 
 --XORs the buffer against a character k
 xorStr :: Char -> String
-xorStr k = map I.w2c $ B.zipWith xor buffer1 $ B.pack $ replicate 100 (I.c2w k)
+xorStr k = map I.w2c $ B.zipWith xor buffer2 $ B.pack $ replicate 100 (I.c2w k)
 
 --Gets the score given a xor'd string based on number of letters 
 getScore:: String -> Double

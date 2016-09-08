@@ -47,7 +47,6 @@ getScoreHelper x = case Map.lookup (toLower x) letters of
     Nothing         -> 0
 
 ----Returns the key in scoreMap with the highest score
---Converts to list, swaps elems, converts back to map, finds value of max key
 getKey :: [String] -> (Double, (String, Char))
 getKey x = Map.findMax $ Map.fromList (map (\x -> swap x) (Map.toList $ scoreMap x))
 
