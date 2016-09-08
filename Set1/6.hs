@@ -7,29 +7,32 @@ import Data.Binary
 import qualified Data.Map as Map
 import qualified Data.ByteString as B
 import qualified Data.BitString as BiS
+import qualified Data.ByteString.Base64 as D
 import qualified Data.ByteString.Internal as I
 
 main :: IO()
 main = do 
-         contents <- readFile "6.txt"
-         let bytes = B.pack $ map (\x -> I.c2w x) contents
-         print $ keysizeMap bytes 
-         print $ keySize bytes
-         print $ cipherBlocks (keySize bytes) (bytes)
-         print $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))
-         print $ scoreMap $ head $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))
-         print $ scoreMap $ last $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))
-         print $ singleXOR $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))
-         print $ xorStr (head $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))) ('a')
-
+         contents <- B.readFile "6.txt"
+         let bytes = D.decodeLenient contents
          --print $ keysizeMap bytes 
          --print $ keySize bytes
-         --print $ cipherBlocks (28) (bytes)
-         --print $ transposeBlocks (28) (cipherBlocks (28) (bytes))
-         --print $ scoreMap $ head $ transposeBlocks (28) (cipherBlocks (28) (bytes))
-         --print $ scoreMap $ last $ transposeBlocks (28) (cipherBlocks (28) (bytes))
-         --print $ singleXOR $ transposeBlocks (28) (cipherBlocks (28) (bytes))
-         --print $ xorStr (head $ transposeBlocks (28) (cipherBlocks (28) (bytes))) ('k')
+         --print $ cipherBlocks (keySize bytes) (bytes)
+         --print $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))
+         --print $ scoreMap $ head $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))
+         --print $ scoreMap $ last $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))
+         --print $ singleXOR $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))
+         --print $ xorStr (head $ transposeBlocks (keySize bytes) (cipherBlocks (keySize bytes) (bytes))) ('a')
+         
+         print $ bytes 
+         print $ keysizeMap bytes 
+         print $ keySize bytes
+         print $ cipherBlocks (29) (bytes)
+         print $ transposeBlocks (29) (cipherBlocks (29) (bytes))
+         print $ scoreMap $ head $ transposeBlocks (29) (cipherBlocks (29) (bytes))
+         print $ scoreMap $ last $ transposeBlocks (29) (cipherBlocks (29) (bytes))
+
+         print $ singleXOR $ transposeBlocks (29) (cipherBlocks (29) (bytes))
+         print $ encrypt bytes (singleXOR $ transposeBlocks (29) (cipherBlocks (29) (bytes)))
 
 --Finds the hamming distance given two bitStrings
 hamming :: BiS.BitString -> BiS.BitString -> GHC.Int.Int64 -> GHC.Int.Int64
@@ -107,3 +110,12 @@ getScoreHelper:: Char -> Double
 getScoreHelper x = case Map.lookup (toLower x) letters of 
     Just frequency  -> frequency
     Nothing         -> 0
+
+--XORs buffer against the key 
+encrypt :: I.ByteString -> [Char] -> I.ByteString
+encrypt b key = B.pack $ B.zipWith xor b $ B.pack $ map (\x -> I.c2w x)(take (B.length b) $ cycle key)
+
+
+
+
+
