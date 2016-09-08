@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-module 5 where
 import Data.Bits (xor)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Internal as I
