@@ -12,8 +12,6 @@ main = do
         then do print $ padBytesN (padSize block blockSize) block
     else do print $ "Error"
 
+--The number of bytes that need to be added
 padSize :: B.ByteString -> Int -> Int
 padSize str len = len - (B.length str)
-
-padBlock::B.ByteString -> Int -> B.ByteString
-padBlock str psize = B.append str (B.pack $ replicate psize (chr psize))
