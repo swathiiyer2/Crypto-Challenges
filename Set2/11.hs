@@ -16,20 +16,20 @@ iv = do
 
 main :: IO()
 main = do
-    input <- getLine
-    let input' = BS.pack input
-    print $ input'
-    let k = BS.pack $ concat $ replicate 48 ['0']
-    print $ k
-    let encryptionMode = randomRIO(0,1) :: IO Int 
-    let cText = [aesEncrypt (unsafePerformIO encryptionMode) (k)]
-    let cChunks = map (\x -> chunk16 x) cText 
-    print $ (unsafePerformIO encryptionMode)
-    print $ ecbEncrypt (unsafePerformIO aes128) (padBytes $ unsafePerformIO $ appendBytes k)
-    if isCBC $ checkDuplicates cText cChunks 
-        then do print $ "CBC"
-    else do print $ "ECB"
+    let input = BS.pack $ concat $ replicate 48 ['A'] 
+    encryptionMode <- randomRIO(0,1) :: IO Int 
+    let cText = [aesEncrypt (encryptionMode) (input)]
+    let cChunks = concat $ map (\x-> chunk16 x) cText 
 
+    print $ head cText
+
+    if encryptionMode == 0
+        then do print $ "Encrypted With: EBC"
+    else do print $ "Encrypted With: CBC"
+
+    if isCBC cChunks
+        then do print $ "Oracle Says: CBC"
+    else do print $ "Oracle Says: ECB"
 
 --Random bytestring for encryption
 randomKey :: IO (BS.ByteString)
@@ -54,27 +54,22 @@ numAppend = randomRIO (5, 10)
 appendBytes :: BS.ByteString -> IO BS.ByteString
 appendBytes pText = do
      h <- newStdGen
-     let numBytes = (unsafePerformIO numAppend)
+     numBytes <- numAppend
      let prefix = BS.pack $ take (numBytes) (randoms h :: [Char]) 
      let suffix = BS.pack $ take (numBytes) (randoms h :: [Char]) 
      return $ BS.append (BS.append prefix pText) suffix 
 
---Decrypt using AES-128 
+--Encrypt using AES-128 
 aesEncrypt :: Int -> BS.ByteString -> BS.ByteString
 aesEncrypt x contents 
        |x == 0 = ecbEncrypt (unsafePerformIO aes128) (padBytes $ unsafePerformIO $ appendBytes contents)
        |otherwise = cbcEncrypt (unsafePerformIO aes128) (unsafePerformIO iv) (padBytes $ unsafePerformIO $ appendBytes contents)
 
 --Split a bytestring into 16-byte chunks
-chunk16 :: BS.ByteString -> [[Char]]
+chunk16 :: BS.ByteString -> [String]
 chunk16 bstr = chunksOf 16 (BS.zipWith (\x y -> x) bstr bstr) 
 
-{-Checks if any 16-byte chunks are repeated for each string, deletes any duplicates, and maps 
- the length of the shortened list to the corresponding hex-encoded string-}
-checkDuplicates:: [BS.ByteString] -> [[String]] -> [(Int, BS.ByteString)]
-checkDuplicates hexStrings chunks = zipWith (\x y -> (length $ nub y, x)) hexStrings chunks 
-
-{-Gets the hex-encoded string that has been AES encrypted from the list of tuples. Only the string
-AES encrypted in ECB mode will have been shortened during check for duplicates-}
-isCBC :: [(Int, BS.ByteString)] -> Bool
-isCBC tuples = lookup (minimum $ map (\x -> fst $ x) tuples) tuples == lookup (maximum $ map (\x -> fst $ x) tuples) tuples
+{-Gets thestring that has been AES encrypted. Only the string AES encrypted in ECB mode will
+have been shortened during check for duplicates-}
+isCBC :: [String] -> Bool
+isCBC chunks = length (chunks) == length (nub $ chunks)
