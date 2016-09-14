@@ -5,7 +5,6 @@ import Crypto.Cipher
 import System.Random
 import System.IO.Unsafe
 import qualified Data.ByteString.Char8 as BS
-import qualified Data.ByteString.Base16 as H
 
 keylen = 16
 iv = do
