@@ -19,9 +19,7 @@ main = do
     encryptionMode <- randomRIO(0,1) :: IO Int 
     let cText = [aesEncrypt (encryptionMode) (input)]
     let cChunks = concat $ map (\x-> chunk16 x) cText 
-
     print $ head cText
-
     if encryptionMode == 0
         then do print $ "Encrypted With: EBC"
     else do print $ "Encrypted With: CBC"
@@ -68,7 +66,7 @@ aesEncrypt x contents
 chunk16 :: BS.ByteString -> [String]
 chunk16 bstr = chunksOf 16 (BS.zipWith (\x y -> x) bstr bstr) 
 
-{-Gets thestring that has been AES encrypted. Only the string AES encrypted in ECB mode will
-have been shortened during check for duplicates-}
+{-Gets thestring that has been AES encrypted and returns true if it detects CBC Mode. Only the string 
+AES encrypted in ECB mode will have been shortened during check for duplicates-}
 isCBC :: [String] -> Bool
 isCBC chunks = length (chunks) == length (nub $ chunks)
