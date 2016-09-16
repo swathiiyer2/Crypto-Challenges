@@ -22,22 +22,33 @@ main = do
           print $ decryptedProfile
 
           print $ adminProfile
+          
+          let encryptAdmin = aesEncrypt (padBytes $ BS.pack $ head adminProfile) aes 
+          print $ encryptAdmin
+
+          let decryptAdmin = aesDecrypt encryptAdmin aes
+          print $ decryptAdmin
 
 
+--Parses and encoded profile
 kvparse :: String -> [[(String, String)]]
 kvparse str = do
      let eqs = map (\x -> splitRegex (mkRegex "=") x) $ splitRegex (mkRegex "&") str
      return $ map (\x -> (head x, last x)) eqs 
 
+--Creates a profile for a user-inputed email
 profileFor :: String -> [(String, String)]
 profileFor email = [("email", handleMetas(email)), ("uid", "10"), ("role", "user")]
 
+--Encodes a profile with metachars
 encodeProfile :: [(String, String)] -> String
 encodeProfile profile = join "&" $ map (\x -> fst x ++ "=" ++ snd x) profile 
 
+--Deletes all metachars from a string
 handleMetas :: String -> String
 handleMetas str = deleteChar '&' (deleteChar '=' str)
 
+--Deletes all instances of a char in a word
 deleteChar :: Char -> String -> String 
 deleteChar char str  
      |delete char str == str = str
@@ -67,16 +78,10 @@ aesDecrypt :: BS.ByteString -> AES128 -> [(String, String)]
 aesDecrypt encoded aes = do
      case (unpadBytes $ ecbDecrypt aes encoded) of Just x  -> concat $ kvparse $ BS.unpack x
                                                    Nothing -> concat $ kvparse $ BS.unpack $ ecbDecrypt aes encoded
-adminProfile:: String 
+
+--Creates an encoded foobar profile and replaces "user" with "admin"
+adminProfile:: [String]
 adminProfile = do
     let base = encodeProfile $ profileFor "foo@bar.com"
-    return $ replace "user" "admin" base
-
-     
-
-
-
-
-
-
-
+    let admin = replace "user" "admin" base
+    return $ admin
