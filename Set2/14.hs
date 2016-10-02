@@ -11,31 +11,21 @@ blocksize = 16
 pText = B64.decodeLenient $ BS.pack ("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK")
 
 main :: IO()
-main = do
-     --print $ pText  
+main = do 
      rcount <- randomRIO(0,15) :: IO Int
      print $ rcount 
-     --print $ BS.length pText
-
      rbytes <- randomBytes rcount
      let rKey = randomBytes blocksize
      aes <- aes128 rKey
-     let strToDecrypt = BS.append rbytes pText 
-     --print $ strToDecrypt  
-
-     let repeatedCharTest = BS.append strToDecrypt (BS.pack $ replicate (blocksize * 2) 'A') 
-     --print $ repeatedCharTest
-     --print $ aesEncrypt repeatedCharTest aes
-     --print $ chunk16 $ aesEncrypt repeatedCharTest aes
-
-     let bytesAdded = decrypt repeatedCharTest aes 0
-     --print $ decrypt repeatedCharTest aes 0
-
+     let strToEncrypt = BS.append rbytes pText 
+     let encrypted = aesEncrypt strToEncrypt aes
+     let repeatedCharTest = BS.append strToEncrypt (BS.pack $ replicate (blocksize * 2) 'A') 
+     let bytesAdded = testcBlocks repeatedCharTest aes 0
      let len = prefixLen (BS.length pText) (bytesAdded) 0
      print $ len 
-
-     print $ BS.drop len strToDecrypt
-
+     print $ BS.drop len strToEncrypt
+     let decrypted = BS.drop len (ecbDecrypt aes encrypted)
+     print $ decrypted
 
 {-Gets thestring that has been AES encrypted and returns true if it detects CBC Mode. Only the string 
 AES encrypted in ECB mode will have been shortened during check for duplicates-}
@@ -66,11 +56,12 @@ chunk16 :: BS.ByteString -> [String]
 chunk16 bstr = chunksOf blocksize (BS.zipWith (\x y -> x) bstr bstr)
 
 --Add bytes until there is are repeated blocks of cipherText
-decrypt :: BS.ByteString -> AES128 -> Int -> Int 
-decrypt testStr aes count  
+testcBlocks :: BS.ByteString -> AES128 -> Int -> Int 
+testcBlocks testStr aes count  
      |isNotECB (chunk16 $ aesEncrypt testStr aes) == False = count
-     |otherwise = decrypt (BS.append testStr (BS.pack "A")) aes (count + 1)
+     |otherwise = testcBlocks (BS.append testStr (BS.pack "A")) aes (count + 1)
 
+--Finds the length of the prefix 
 prefixLen :: Int -> Int -> Int -> Int
 prefixLen textLen bytesAdded prefLen
      |(textLen + bytesAdded + prefLen) `mod` blocksize == 0 = prefLen
